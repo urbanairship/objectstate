@@ -1,0 +1,35 @@
+{
+  "name": "objectstate",
+  "version": "1.5.0",
+  "description": "Lightweight, streaming state management.",
+  "main": "index",
+  "license": "APACHE-V2",
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "^2.13.3",
+    "through": "^2.3.4"
+  },
+  "author": "Urban Airship",
+  "contributors": [
+    "Chris Dickinson <chris@neversaw.us>",
+    "Andrew Winterman <andrew.winterman@urbanairship.com>",
+    "Michael Hayes <michael@hayes.io>",
+    "Jesse Keane <jesse.keane@urbanairship.com>"
+  ],
+  "keywords": [
+    "State",
+    "Data",
+    "Binding",
+    "Light",
+    "Weight",
+    "Streaming"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/urbanairship/objectstate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/urbanairship/objectstate/issues"
+  },
+  "homepage": "https://github.com/urbanairship/objectstate"
+}
