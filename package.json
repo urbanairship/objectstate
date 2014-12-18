@@ -3,9 +3,6 @@
   "version": "1.5.0",
   "description": "Lightweight, streaming state management.",
   "main": "index",
-  "scripts": {
-    "authors": "node -e \"process.stdout.write(require('./package.json').contributors.join('\\n'))\" > AUTHORS"
-  },
   "license": "APACHE-V2",
   "dependencies": {},
   "devDependencies": {
