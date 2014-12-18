@@ -1,0 +1,33 @@
+{
+  "name": "ua-objectstate",
+  "version": "1.5.0",
+  "description": "Lightweight, streaming state management.",
+  "main": "index",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "license": "APACHE-V2",
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "^2.13.3",
+    "through": "^2.3.4"
+  },
+  "author": "Urban Airship",
+  "contributors": [
+    "Michael Hayes <Michael.Hayes@urbanairship.com>",
+    "Tracy Abrahms <tracy.abrahms@urbanairship.com>",
+    "Daniel Lindsley <daniel.lindsley@urbanairship.com>",
+    "Ben Turner <ben.turner@urbanairship.com>",
+    "Jesse Keane <jesse.keane@urbanairship.com>",
+    "Andrew Winterman <andrew.winterman@urbanairship.com>",
+    "Lisa Moreno <lisa@urbanairship.com>"
+  ],
+  "keywords": [
+    "State",
+    "Data",
+    "Binding",
+    "Light",
+    "Weight",
+    "Streaming"
+  ]
+}
