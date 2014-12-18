@@ -1,5 +1,5 @@
 {
-  "name": "ua-objectstate",
+  "name": "objectstate",
   "version": "1.5.0",
   "description": "Lightweight, streaming state management.",
   "main": "index",
@@ -14,13 +14,10 @@
   },
   "author": "Urban Airship",
   "contributors": [
-    "Michael Hayes <Michael.Hayes@urbanairship.com>",
-    "Tracy Abrahms <tracy.abrahms@urbanairship.com>",
-    "Daniel Lindsley <daniel.lindsley@urbanairship.com>",
-    "Ben Turner <ben.turner@urbanairship.com>",
-    "Jesse Keane <jesse.keane@urbanairship.com>",
+    "Chris Dickinson <chris@neversaw.us>",
     "Andrew Winterman <andrew.winterman@urbanairship.com>",
-    "Lisa Moreno <lisa@urbanairship.com>"
+    "Micheal Hayes <michael@hayes.io>",
+    "Jesse Keane <jesse.keane@urbanairship.com>"
   ],
   "keywords": [
     "State",
@@ -29,5 +26,8 @@
     "Light",
     "Weight",
     "Streaming"
-  ]
+  ],
+  "scripts": {
+    "authors": "node -e \"process.stdout.write(require('./package.json').contributors.join('\\n'))\" > AUTHORS"
+  }
 }
