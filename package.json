@@ -4,7 +4,7 @@
   "description": "Lightweight, streaming state management.",
   "main": "index",
   "scripts": {
-    "test": "node test.js"
+    "authors": "node -e \"process.stdout.write(require('./package.json').contributors.join('\\n'))\" > AUTHORS"
   },
   "license": "APACHE-V2",
   "dependencies": {},
@@ -27,7 +27,12 @@
     "Weight",
     "Streaming"
   ],
-  "scripts": {
-    "authors": "node -e \"process.stdout.write(require('./package.json').contributors.join('\\n'))\" > AUTHORS"
-  }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/urbanairship/objectstate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/urbanairship/objectstate/issues"
+  },
+  "homepage": "https://github.com/urbanairship/objectstate"
 }
