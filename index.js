@@ -5,7 +5,12 @@ var Stream = require('stream')
 var deepequal = require('deep-equal')
   , prop = require('deep-property')
 
-module.exports = ObjectState
+module.exports = createOS
+module.exports.ObjectState = ObjectState
+
+function createOS(_initial) {
+  return new ObjectState(_initial)
+}
 
 function ObjectState(_initial) {
   Stream.call(this)
@@ -13,10 +18,8 @@ function ObjectState(_initial) {
   this.writable = true
   this.readable = true
 
-  var state = _initial || {}
-
   this.state = function() {
-    return deepcopy(state)
+    return deepcopy(_initial || {})
   }
 }
 

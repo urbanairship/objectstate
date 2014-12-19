@@ -149,6 +149,25 @@ test('`.wait` will hold events within given function', function(assert) {
   assert.end()
 })
 
+test('`.wait` sends no event if nothing changes', function(assert) {
+  var os = new ObjectState({value: 'dog'})
+    , ee = new EE()
+    , count = 0
+
+  os.listenOn(ee, 'data', ['value'])
+
+  os.on('data', function() {
+    ++count
+  })
+
+  os.wait(function() {
+    ee.emit('data', 'dog')
+  })
+
+  assert.equal(count, 0)
+  assert.end()
+})
+
 test('`.wait` sends no event if nothing was emitted', function(assert) {
   var os = new ObjectState()
     , ee = new EE()
@@ -209,7 +228,7 @@ test('makes copy of object on construction and write', function(assert) {
   assert.deepEqual(os.state(), written)
 })
 
-test('state returns deep copy of state', function(assert) {
+test('`.state()` returns deep copy of state', function(assert) {
   var expect = {}
     , inner = {}
     , result
@@ -226,7 +245,7 @@ test('state returns deep copy of state', function(assert) {
   assert.end()
 })
 
-test('can set attr via `.set` method', function(assert) {
+test('can set attr via `.set()` method', function(assert) {
   assert.plan(1)
 
   var os = new ObjectState()
@@ -246,6 +265,41 @@ test('can get attr via `.get` method', function(assert) {
   assert.equal(os.get('a'), false)
   assert.equal(os.get('b'), '1')
   assert.equal(os.get('c'), undefined)
+})
+
+test('can listen to streams', function(assert) {
+  assert.plan(1)
+
+  var os = new ObjectState()
+  var stream = through()
+
+  os.listen(stream, 'herp')
+
+  os.once('data', function(state) {
+    assert.deepEqual(state, {herp: 'derp'})
+  })
+
+  stream.queue('derp')
+})
+
+test('can get keypaths', function(assert) {
+  assert.plan(1)
+
+  var os = new ObjectState({herp: {derp: 'cat'}})
+
+  assert.equal(os.get('herp.derp'), 'cat')
+})
+
+test('can set keypaths', function(assert) {
+  assert.plan(1)
+
+  var os = new ObjectState
+
+  os.once('data', function(state) {
+    assert.deepEqual(state, {herp: {derp: 'cat'}})
+  })
+
+  os.set('herp.derp', 'cat')
 })
 
 test('can remove an attr from object state', function(assert) {
