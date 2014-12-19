@@ -32,7 +32,7 @@
     "url": "https://github.com/urbanairship/objectstate/issues"
   },
   "homepage": "https://github.com/urbanairship/objectstate",
-  "script": {
+  "scripts": {
     "test": "node ./test.js"
   }
 }
