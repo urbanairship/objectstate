@@ -1,6 +1,6 @@
 {
   "name": "objectstate",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Lightweight, streaming state management.",
   "main": "index",
   "license": "APACHE-V2",
