@@ -1,3 +1,5 @@
+// Copyright 2014 Urban Airship and Contributors
+
 var EE = require('events').EventEmitter
 
 var ObjectState = require('./')
