@@ -16,12 +16,11 @@ var cons = ObjectState
 proto.constructor = cons
 
 proto.wait = function(fn) {
-  var emit = this.emit
-    , should_emit = 0
+  var should_emit = false
 
   // shadow the prototype property
   this.emit = function() {
-    ++should_emit
+    should_emit = true
   }
 
   try {
