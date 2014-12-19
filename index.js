@@ -89,13 +89,15 @@ ObjectState.prototype.get = function get(key) {
 }
 
 ObjectState.prototype.set = function set(key, val) {
-  var shouldEmit = this.get(key) !== val
+  var shouldEmit = !equal(this.get(key), val)
+
+  if(!shouldEmit) {
+    return
+  }
 
   prop.set(this._state, key, deepcopy(val))
 
-  if(shouldEmit) {
-    this.emitState()
-  }
+  this.emitState()
 }
 
 ObjectState.prototype.remove = function remove(key) {
@@ -111,11 +113,13 @@ ObjectState.prototype.remove = function remove(key) {
 ObjectState.prototype.write = function write(data) {
   var shouldEmit = !equal(this._state, data)
 
+  if(!shouldEmit) {
+    return
+  }
+
   this._state = deepcopy(data)
 
-  if(shouldEmit) {
-    this.emitState()
-  }
+  this.emitState()
 }
 
 function deepcopy(obj) {
