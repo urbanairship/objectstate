@@ -43,11 +43,11 @@ ObjectState.prototype.wait = function wait(fn) {
   }
 }
 
-ObjectState.prototype.stream = function stream(src, key) {
+ObjectState.prototype.listen = function listen(src, key) {
   src.on('data', this.set.bind(this, key))
 }
 
-ObjectState.prototype.listen = function listen(ee, name, params) {
+ObjectState.prototype.listenOn = function listenOn(ee, name, params) {
   var paramsLength = params.length
     , self = this
 

@@ -33,7 +33,7 @@ test('Can pipe object state', function(assert) {
 
   os.pipe(ws)
 
-  os.listen(ee, 'data', ['salutation'])
+  os.listenOn(ee, 'data', ['salutation'])
 
   ee.emit('data', 'sup')
 })
@@ -84,12 +84,12 @@ test('ObjectState maps events from emitters to context', function(assert) {
 
   var os = new ObjectState()
 
-  os.listen(ee_one, 'data', [
+  os.listenOn(ee_one, 'data', [
       'hat'
     , 'bat'
     , 'cat'
   ])
-  os.listen(ee_two, 'data', [
+  os.listenOn(ee_two, 'data', [
       'rat'
     , null
     , 'cat'
@@ -125,7 +125,7 @@ test('`.wait` will hold events within given function', function(assert) {
     , ee = new EE()
     , count = 0
 
-  os.listen(ee, 'data', ['value'])
+  os.listenOn(ee, 'data', ['value'])
 
   os.on('data', function(state) {
     ++count
@@ -154,7 +154,7 @@ test('`.wait` sends no event if nothing was emitted', function(assert) {
     , ee = new EE()
     , count = 0
 
-  os.listen(ee, 'data', ['value'])
+  os.listenOn(ee, 'data', ['value'])
 
   os.on('data', function() {
     ++count
@@ -173,7 +173,7 @@ test('does not emit if value is unchanged', function(assert) {
     , ee = new EE
     , count = 0
 
-  os.listen(ee, 'data', ['cats'])
+  os.listenOn(ee, 'data', ['cats'])
 
   os.on('data', function() {
     ++count
