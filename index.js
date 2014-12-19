@@ -13,20 +13,13 @@ function ObjectState(_initial) {
   this.writable = true
   this.readable = true
 
-  var state = _initial || {}
-  this._state = deepcopy(state)
-
-  /*
-  this.state = function() {
-    return deepcopy(state)
-  }
-  */
+  this._state = deepcopy(_initial || {})
 }
 
 ObjectState.prototype = Object.create(Stream.prototype)
 
 ObjectState.prototype.wait = function wait(fn) {
-  var original = deepcopy(this._state)//this.state()
+  var original = deepcopy(this._state)
     , shouldEmit = false
     , emit = this.emit
 
@@ -88,7 +81,7 @@ ObjectState.prototype.listenOn = function listenOn(ee, name, params) {
 }
 
 ObjectState.prototype.emitState = function emitState() {
-  this.emit('data', this._state)
+  this.emit('data', deepcopy(this._state))
 }
 
 ObjectState.prototype.get = function get(key) {
@@ -96,11 +89,13 @@ ObjectState.prototype.get = function get(key) {
 }
 
 ObjectState.prototype.set = function set(key, val) {
-  var shouldEmit = (this.get(key) !== val)
+  var shouldEmit = this.get(key) !== val
 
   prop.set(this._state, key, deepcopy(val))
 
-  if(shouldEmit) this.emitState()
+  if(shouldEmit) {
+    this.emitState()
+  }
 }
 
 ObjectState.prototype.remove = function remove(key) {
