@@ -44,7 +44,7 @@ test('Can write to object state', function(assert) {
 
   os.on('data', function(state) {
     assert.deepEqual(state, test_state)
-    assert.deepEqual(os.state(), test_state)
+    assert.deepEqual(os._state, test_state)
     assert.end()
   })
 
@@ -60,7 +60,7 @@ test('Is a writable stream', function(assert) {
 
   os.on('data', function(state) {
     assert.deepEqual(state, test_state)
-    assert.deepEqual(os.state(), test_state)
+    assert.deepEqual(os._state, test_state)
     assert.end()
   })
 
@@ -97,11 +97,11 @@ test('ObjectState maps events from emitters to context', function(assert) {
 
   ee_one.emit('dne', Math.random())
 
-  assert.deepEqual(os.state(), {})
+  assert.deepEqual(os._state, {})
 
   ee_one.emit('data', 1, 2, 3)
 
-  assert.deepEqual(os.state(), {
+  assert.deepEqual(os._state, {
       hat: 1
     , bat: 2
     , cat: 3
@@ -109,7 +109,7 @@ test('ObjectState maps events from emitters to context', function(assert) {
 
   ee_two.emit('data', 4, 5, undefined)
 
-  assert.deepEqual(os.state(), {
+  assert.deepEqual(os._state, {
       rat: 4
     , hat: 1
     , bat: 2
@@ -200,15 +200,16 @@ test('makes copy of object on construction and write', function(assert) {
 
   // verifies that the state and original do not share a reference,
   // but that they are identical otherwise.
-  assert.notEqual(os.state(), original)
-  assert.deepEqual(os.state(), original)
+  assert.notEqual(os._state, original)
+  assert.deepEqual(os._state, original)
 
   os.write(written)
 
-  assert.notEqual(os.state(), written)
-  assert.deepEqual(os.state(), written)
+  assert.notEqual(os._state, written)
+  assert.deepEqual(os._state, written)
 })
 
+/*
 test('state returns deep copy of state', function(assert) {
   var expect = {}
     , inner = {}
@@ -219,12 +220,13 @@ test('state returns deep copy of state', function(assert) {
   expect.inner.a = Math.random()
   expect.inner.b = [Math.random()]
   os = new ObjectState(expect)
-  result = os.state()
+  result = os._state
   assert.notStrictEqual(result.inner, expect.inner)
   assert.notStrictEqual(result, expect)
   assert.deepEqual(result, expect)
   assert.end()
 })
+*/
 
 test('can set attr via `.set` method', function(assert) {
   assert.plan(1)
@@ -259,5 +261,5 @@ test('can remove an attr from object state', function(assert) {
 
   os.remove('why')
 
-  assert.ok(!os.state().hasOwnProperty('why'), 'removed the property')
+  assert.ok(!os._state.hasOwnProperty('why'), 'removed the property')
 })
