@@ -8,16 +8,14 @@ var deepequal = require('deep-equal')
 module.exports = ObjectState
 
 function ObjectState(_initial) {
-  var self = this
+  Stream.call(this)
 
-  Stream.call(self)
-
-  self.writable = true
-  self.readable = true
+  this.writable = true
+  this.readable = true
 
   var state = _initial || {}
 
-  self.state = function() {
+  this.state = function() {
     return deepcopy(state)
   }
 }
