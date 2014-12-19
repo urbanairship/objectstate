@@ -31,5 +31,8 @@
   "bugs": {
     "url": "https://github.com/urbanairship/objectstate/issues"
   },
-  "homepage": "https://github.com/urbanairship/objectstate"
+  "homepage": "https://github.com/urbanairship/objectstate",
+  "script": {
+    "test": "node ./test.js"
+  }
 }
