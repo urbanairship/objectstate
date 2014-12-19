@@ -7,19 +7,18 @@ var deepequal = require('deep-equal')
 
 module.exports = ObjectState
 
-function ObjectState(_initial, _deepcopy) {
+function ObjectState(_initial) {
   var self = this
 
   Stream.call(self)
 
   self.writable = true
   self.readable = true
-  self._deepcopy = _deepcopy || defaultDeepcopy
 
   var state = _initial || {}
 
   self.state = function() {
-    return self._deepcopy(state)
+    return deepcopy(state)
   }
 }
 
@@ -116,19 +115,18 @@ ObjectState.prototype.remove = function remove(key) {
 }
 
 ObjectState.prototype.write = function write(data) {
-  var self = this
-  var shouldEmit = !equal(self.state(), data)
+  var shouldEmit = !equal(this.state(), data)
 
-  self.state = function() {
-    return self._deepcopy(data)
+  this.state = function() {
+    return deepcopy(data)
   }
 
   if(shouldEmit) {
-    self.emitState()
+    this.emitState()
   }
 }
 
-function defaultDeepcopy(obj) {
+function deepcopy(obj) {
   return JSON.parse(JSON.stringify(obj))
 }
 
