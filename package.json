@@ -4,10 +4,16 @@
   "description": "Lightweight, streaming state management.",
   "main": "index",
   "license": "APACHE-V2",
-  "dependencies": {},
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "deep-equal": "^0.2.1",
+    "deep-property": "^1.0.0"
+  },
   "devDependencies": {
-    "tape": "^2.13.3",
-    "through": "^2.3.4"
+    "tape": "^3.0.3",
+    "through": "^2.3.6"
   },
   "author": "Urban Airship",
   "contributors": [

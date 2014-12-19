@@ -2,152 +2,136 @@
 
 var Stream = require('stream')
 
-function ObjectState(initial) {
-  Stream.call(this)
+var deepequal = require('deep-equal')
+  , prop = require('deep-property')
 
-  this.writable = true
-  this.readable = true
-  this.state = initial || {}
+module.exports = ObjectState
+
+function ObjectState(_initial, _deepcopy) {
+  var self = this
+
+  Stream.call(self)
+
+  self.writable = true
+  self.readable = true
+  self._deepcopy = _deepcopy || defaultDeepcopy
+
+  var state = _initial || {}
+
+  self.state = function() {
+    return self._deepcopy(state)
+  }
 }
 
-var cons = ObjectState
-  , proto = cons.prototype = Object.create(Stream.prototype)
+ObjectState.prototype = Object.create(Stream.prototype)
 
-proto.constructor = cons
-
-proto.wait = function(fn) {
-  var emit = this.emit
-    , should_emit = 0
+ObjectState.prototype.wait = function wait(fn) {
+  var original = this.state()
+    , shouldEmit = false
+    , emit = this.emit
 
   // shadow the prototype property
   this.emit = function() {
-    ++should_emit
+    shouldEmit = true
   }
 
   try {
     fn()
   } finally {
-    delete this.emit
-    should_emit && this.emitState()
+    this.emit = emit
+
+    if(shouldEmit && !equal(this.state, original)) {
+      this.emitState()
+    }
   }
 }
 
-proto.listen = function(ee, name, params) {
-  ee.on(name, this.receive_event.bind(this, params))
-
-  return this
+ObjectState.prototype.stream = function stream(src, key) {
+  src.on('data', this.set.bind(this, key))
 }
 
-proto.emitState = function() {
-  this.emit('data', this.state)
+ObjectState.prototype.listen = function listen(ee, name, params) {
+  var paramsLength = params.length
+    , self = this
+
+  ee.on(name, receiveEvent)
+
+  return self
+
+  function receiveEvent() {
+    var args = [].slice.call(arguments)
+
+    self.wait(applyContext)
+
+    function applyContext() {
+      var param
+        , arg
+
+      for(var i = 0; i < paramsLength; ++i) {
+        param = params[i]
+        arg = args[i]
+
+        if(!param) {
+          continue
+        }
+
+        if(typeof arg === 'undefined') {
+          self.remove(param)
+
+          continue
+        }
+
+        self.set(param, arg)
+      }
+    }
+  }
 }
 
-proto.deepcopy = function() {
-  return JSON.parse(JSON.stringify(this.state))
+ObjectState.prototype.emitState = function emitState() {
+  this.emit('data', this.state())
 }
 
-proto.copy = function() {
-  var out = {}
+ObjectState.prototype.get = function get(key) {
+  return prop.get(this.state(), key)
+}
 
-  for(var key in this.state) {
-    out[key] = this.state[key]
+ObjectState.prototype.set = function set(key, val) {
+  var state = this.state()
+
+  prop.set(state, key, val)
+
+  this.write(state)
+}
+
+ObjectState.prototype.remove = function remove(key) {
+  var state = this.state()
+
+  if(!state.hasOwnProperty(key)) {
+    return false
   }
 
-  return out
+  delete state[key]
+
+  this.write(state)
 }
 
-proto.snapshot = function(deep) {
-  deep = deep === undefined ? true : deep
-
+ObjectState.prototype.write = function write(data) {
   var self = this
-    , state = self[deep ? 'deepcopy' : 'copy']()
+  var shouldEmit = !equal(self.state(), data)
 
-  return restore
+  self.state = function() {
+    return self._deepcopy(data)
+  }
 
-  function restore() {
-    self.state = state
+  if(shouldEmit) {
     self.emitState()
   }
 }
 
-proto.include = function(os) {
-  var self = this
-
-  os.on('data', ondata)
-    .on('delete-key', ondeletekey)
-
-  return os
-
-  function ondata(state) {
-    for(var key in state) {
-      self.state[key] = state[key]
-    }
-
-    self.emitState()
-  }
-
-  function ondeletekey(key) {
-    self._remove(key)
-  }
+function defaultDeepcopy(obj) {
+  return JSON.parse(JSON.stringify(obj))
 }
 
-proto.get = function(key) {
-  return this.state[key]
+function equal(x, y) {
+  return deepequal(x, y, {strict: true})
 }
-
-proto.set = function(key, val) {
-  this.state[key] = val
-
-  this.emitState()
-}
-
-proto.remove = function(attr) {
-  this._remove(attr)
-  this.emitState()
-}
-
-proto.write = function(data) {
-  this.state = data
-
-  this.emitState()
-}
-
-proto._remove = function(attr) {
-  if(this.state.hasOwnProperty(attr)) {
-    delete this.state[attr]
-
-    this.emit('delete-key', attr)
-  }
-}
-
-proto.receive_event = function(params) {
-  var self = this
-    , values = [].slice.call(arguments, 1)
-    , context
-
-  context = params.reduce(map_value_to_attr, {})
-
-  Object.keys(context).forEach(apply_context_to_state)
-
-  self.emitState()
-
-  function map_value_to_attr(lhs, rhs) {
-    var value = values.shift()
-
-    if(rhs !== null) {
-      lhs[rhs] = value
-    }
-
-    return lhs
-  }
-
-  function apply_context_to_state(key) {
-    if(context[key] === undefined) {
-      return self._remove(key)
-    }
-
-    self.state[key] = context[key]
-  }
-}
-
-module.exports = cons
