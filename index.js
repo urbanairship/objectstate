@@ -37,7 +37,7 @@ ObjectState.prototype.wait = function wait(fn) {
   } finally {
     this.emit = emit
 
-    if(shouldEmit && !equal(this.state, original)) {
+    if(shouldEmit && !equal(this.state(), original)) {
       this.emitState()
     }
   }
