@@ -2,31 +2,24 @@
 
 var EE = require('events').EventEmitter
 
-var ObjectState = require('./')
-
 var through = require('through')
   , test = require('tape')
 
-test('ObjectState is a function', function(assert) {
+var ObjectState = require('./')
+
+test('is a function', function(assert) {
   assert.equal(typeof ObjectState, 'function')
   assert.end()
 })
 
-test('ObjectState is a readable stream', function(assert) {
-  var os = new ObjectState()
+test('is a readable stream', function(assert) {
+  assert.plan(1)
 
-  assert.ok('emit' in os)
-  assert.ok('on' in os)
-  assert.end()
-})
-
-test('Can pipe object state', function(assert) {
-  var ws = new through(write)
+  var ws = through(write)
     , ee = new EE
 
   function write(obj) {
-    assert.deepEqual(obj, {'salutation': 'sup'})
-    assert.end()
+    assert.deepEqual(obj, {salutation: 'sup'})
   }
 
   var os = new ObjectState()
@@ -38,36 +31,38 @@ test('Can pipe object state', function(assert) {
   ee.emit('data', 'sup')
 })
 
-test('Can write to object state', function(assert) {
+test('can write to object state', function(assert) {
+  assert.plan(2)
+
   var os = new ObjectState
-  var test_state = {cats: true}
+  var testState = {cats: true}
 
   os.on('data', function(state) {
-    assert.deepEqual(state, test_state)
-    assert.deepEqual(os._state, test_state)
-    assert.end()
+    assert.deepEqual(state, testState)
+    assert.deepEqual(os._state, testState)
   })
 
-  os.write(test_state)
+  os.write(testState)
 })
 
-test('Is a writable stream', function(assert) {
+test('is a writable stream', function(assert) {
+  assert.plan(2)
+
   var os = new ObjectState
   var stream = through()
-  var test_state = {cats: true}
+  var testState = {cats: true}
 
   stream.pipe(os)
 
   os.on('data', function(state) {
-    assert.deepEqual(state, test_state)
-    assert.deepEqual(os._state, test_state)
-    assert.end()
+    assert.deepEqual(state, testState)
+    assert.deepEqual(os._state, testState)
   })
 
-  stream.queue(test_state)
+  stream.queue(testState)
 })
 
-test('os.emitState emits current state', function(assert) {
+test('`.emitState()` emits current state', function(assert) {
   var os = new ObjectState({cats: true})
 
   os.on('data', function(state) {
@@ -78,7 +73,7 @@ test('os.emitState emits current state', function(assert) {
   os.emitState()
 })
 
-test('ObjectState maps events from emitters to context', function(assert) {
+test('`.listenOn()` maps events from emitters to context', function(assert) {
   var ee_one = new EE()
     , ee_two = new EE()
 
@@ -118,7 +113,7 @@ test('ObjectState maps events from emitters to context', function(assert) {
   assert.end()
 })
 
-test('`.wait` will hold events within given function', function(assert) {
+test('`.wait()` will hold events within given function', function(assert) {
   var value_2 = Math.random() + 10
     , value_1 = Math.random()
     , os = new ObjectState()
@@ -149,7 +144,7 @@ test('`.wait` will hold events within given function', function(assert) {
   assert.end()
 })
 
-test('`.wait` sends no event if nothing was emitted', function(assert) {
+test('`.wait()` sends no event if nothing was emitted', function(assert) {
   var os = new ObjectState()
     , ee = new EE()
     , count = 0
@@ -209,8 +204,9 @@ test('makes copy of object on construction and write', function(assert) {
   assert.deepEqual(os._state, written)
 })
 
-/*
-test('state returns deep copy of state', function(assert) {
+test('`.state()` returns deep copy of state', function(assert) {
+  assert.plan(3)
+
   var expect = {}
     , inner = {}
     , result
@@ -220,46 +216,108 @@ test('state returns deep copy of state', function(assert) {
   expect.inner.a = Math.random()
   expect.inner.b = [Math.random()]
   os = new ObjectState(expect)
-  result = os._state
+  result = os.state()
   assert.notStrictEqual(result.inner, expect.inner)
   assert.notStrictEqual(result, expect)
   assert.deepEqual(result, expect)
-  assert.end()
 })
-*/
 
-test('can set attr via `.set` method', function(assert) {
+test('emits a deep-copy of state', function(assert) {
+  assert.plan(5)
+
+  var written = {cats: true}
+    , result
+    , os
+
+  os = new ObjectState
+
+  os.once('data', function(state) {
+    result = state
+  })
+
+  os.write(written)
+
+  assert.deepEqual(written, result)
+  assert.deepEqual(os._state, result)
+
+  assert.notEqual(written, result)
+  assert.notEqual(os._state, written)
+  assert.notEqual(result, os._state)
+})
+
+test('can nest `.wait()` statements', function(assert) {
   assert.plan(1)
 
-  var os = new ObjectState()
+  var os = new ObjectState
+    , stream = through()
+    , count = 0
 
-  os.on('data', function(state) {
+  os.listen(stream, 'herp')
+
+  os.on('data', function() {
+    ++count
+  })
+
+  os.wait(function() {
+    os.wait(function() {
+      stream.queue('flerp')
+      stream.queue('werp')
+    })
+
+    stream.queue('herp')
+    stream.queue('merp')
+  })
+
+  assert.equal(count, 1)
+})
+
+test('can set attr via `.set()` method', function(assert) {
+  assert.plan(2)
+
+  var os = new ObjectState
+
+  os.once('data', function(state) {
     assert.deepEqual(state, {herp: 'derp'})
   })
 
   os.set('herp', 'derp')
+
+  os.once('data', function(state) {
+    assert.deepEqual(state, {herp: 'derp', derp: {herp: 'flerp'}})
+  })
+
+  os.set('derp.herp', 'flerp')
 })
 
-test('can get attr via `.get` method', function(assert) {
-  assert.plan(3)
+test('can get attr via `.get()` method', function(assert) {
+  assert.plan(4)
 
-  var os = new ObjectState({a: false, b: '1'})
+  var os = new ObjectState({a: false, b: '1', d: {hey: 'cats'}})
 
   assert.equal(os.get('a'), false)
   assert.equal(os.get('b'), '1')
   assert.equal(os.get('c'), undefined)
+  assert.equal(os.get('d.hey'), 'cats')
 })
 
-test('can remove an attr from object state', function(assert) {
-  assert.plan(2)
+test('can remove an attr via `.remove()`', function(assert) {
+  assert.plan(4)
 
-  var os = new ObjectState({'why': 'yes'})
+  var os = new ObjectState({why: 'yes', no: {sure: 'whynot'}})
 
-  os.on('data', function(state) {
-    assert.deepEqual(state, {})
+  os.once('data', function(state) {
+    assert.deepEqual(state, {no: {sure: 'whynot'}})
   })
 
   os.remove('why')
 
   assert.ok(!os._state.hasOwnProperty('why'), 'removed the property')
+
+  os.once('data', function(state) {
+    assert.deepEqual(state, {no: {}})
+  })
+
+  os.remove('no.sure')
+
+  assert.ok(!os._state.no.hasOwnProperty('sure'))
 })
