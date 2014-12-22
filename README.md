@@ -1,6 +1,6 @@
 # ObjectState
 
-[![Build Status](http://img.shields.io/travis/urbanairship/objectstate.svg?style=flat)](https://travis-ci.org/urbanairship/objectstate)
+[![Build Status](http://img.shields.io/travis/urbanairship/objectstate/master.svg?style=flat)](https://travis-ci.org/urbanairship/objectstate)
 [![npm install](http://img.shields.io/npm/dm/objectstate.svg?style=flat)](https://www.npmjs.org/package/objectstate)
 
 `objectstate` exports a function that constructs a stream. The stream is
