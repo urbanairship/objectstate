@@ -1,152 +1,139 @@
 // Copyright 2014 Urban Airship and Contributors
 
-var Stream = require('stream')
+var through = require('through')
 
-function ObjectState(initial) {
-  Stream.call(this)
+var deepequal = require('deep-equal')
+  , prop = require('deep-property')
 
-  this.writable = true
-  this.readable = true
-  this.state = initial || {}
-}
+module.exports = objectState
 
-var cons = ObjectState
-  , proto = cons.prototype = Object.create(Stream.prototype)
+function objectState(_initial) {
+  var state = deepcopy(_initial) || {}
+    , stream = through(write)
 
-proto.constructor = cons
+  stream.get = get
+  stream.set = set
+  stream.remove = remove
 
-proto.wait = function(fn) {
-  var should_emit = false
+  stream.listen = listen
+  stream.listenOn = listenOn
 
-  // shadow the prototype property
-  this.emit = function() {
-    should_emit = true
-  }
+  stream.wait = wait
 
-  try {
-    fn()
-  } finally {
-    delete this.emit
-    should_emit && this.emitState()
-  }
-}
+  stream.state = copyState
+  stream.emitState = emitState
 
-proto.listen = function(ee, name, params) {
-  ee.on(name, this.receive_event.bind(this, params))
+  return stream
 
-  return this
-}
-
-proto.emitState = function() {
-  this.emit('data', this.state)
-}
-
-proto.deepcopy = function() {
-  return JSON.parse(JSON.stringify(this.state))
-}
-
-proto.copy = function() {
-  var out = {}
-
-  for(var key in this.state) {
-    out[key] = this.state[key]
-  }
-
-  return out
-}
-
-proto.snapshot = function(deep) {
-  deep = deep === undefined ? true : deep
-
-  var self = this
-    , state = self[deep ? 'deepcopy' : 'copy']()
-
-  return restore
-
-  function restore() {
-    self.state = state
-    self.emitState()
-  }
-}
-
-proto.include = function(os) {
-  var self = this
-
-  os.on('data', ondata)
-    .on('delete-key', ondeletekey)
-
-  return os
-
-  function ondata(state) {
-    for(var key in state) {
-      self.state[key] = state[key]
+  function write(data) {
+    if(equal(state, data)) {
+      return
     }
 
-    self.emitState()
+    state = deepcopy(data)
+
+    emitState()
   }
 
-  function ondeletekey(key) {
-    self._remove(key)
+  function get(keypath) {
+    return deepcopy(prop.get(state, keypath))
   }
-}
 
-proto.get = function(key) {
-  return this.state[key]
-}
-
-proto.set = function(key, val) {
-  this.state[key] = val
-
-  this.emitState()
-}
-
-proto.remove = function(attr) {
-  this._remove(attr)
-  this.emitState()
-}
-
-proto.write = function(data) {
-  this.state = data
-
-  this.emitState()
-}
-
-proto._remove = function(attr) {
-  if(this.state.hasOwnProperty(attr)) {
-    delete this.state[attr]
-
-    this.emit('delete-key', attr)
-  }
-}
-
-proto.receive_event = function(params) {
-  var self = this
-    , values = [].slice.call(arguments, 1)
-    , context
-
-  context = params.reduce(map_value_to_attr, {})
-
-  Object.keys(context).forEach(apply_context_to_state)
-
-  self.emitState()
-
-  function map_value_to_attr(lhs, rhs) {
-    var value = values.shift()
-
-    if(rhs !== null) {
-      lhs[rhs] = value
+  function set(keypath, val) {
+    if(equal(get(keypath), val)) {
+      return
     }
 
-    return lhs
+    prop.set(state, keypath, deepcopy(val))
+
+    emitState()
   }
 
-  function apply_context_to_state(key) {
-    if(context[key] === undefined) {
-      return self._remove(key)
+  function remove(keypath) {
+    var shouldEmit = prop.remove(state, keypath)
+
+    if(shouldEmit) {
+      stream.queue(state)
+    }
+  }
+
+  function listen(src, keypath) {
+    src.on('data', function(data) {
+      set(keypath, data)
+    })
+
+    return stream
+  }
+
+  function listenOn(ee, name, params) {
+    var paramsLength = params.length
+
+    ee.on(name, receiveEvent)
+
+    return stream
+
+    function receiveEvent() {
+      var args = [].slice.call(arguments)
+
+      wait(setParams)
+
+      function setParams() {
+        var param
+          , arg
+
+        for(var i = 0; i < paramsLength; ++i) {
+          param = params[i]
+          arg = args[i]
+
+          if(!param) {
+            continue
+          }
+
+          if(typeof arg === 'undefined') {
+            remove(param)
+
+            continue
+          }
+
+          set(param, arg)
+        }
+      }
+    }
+  }
+
+  function wait(fn) {
+    var original = deepcopy(state)
+      , queue = stream.queue
+      , shouldEmit = false
+
+    stream.queue = function() {
+      shouldEmit = true
     }
 
-    self.state[key] = context[key]
+    try {
+      fn()
+    } finally {
+      stream.queue = queue
+
+      if(shouldEmit && !equal(state, original)) {
+        emitState()
+      }
+    }
+  }
+
+  function copyState() {
+    return deepcopy(state)
+  }
+
+  function emitState() {
+    stream.queue(deepcopy(state))
   }
 }
 
-module.exports = cons
+function deepcopy(obj) {
+  return obj ? JSON.parse(JSON.stringify(obj)) : obj
+}
+
+function equal(x, y) {
+  return deepequal(x, y, {strict: true})
+}
