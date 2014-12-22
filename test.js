@@ -1,5 +1,3 @@
-// Copyright 2014 Urban Airship and Contributors
-
 var EE = require('events').EventEmitter
 
 var ObjectState = require('./')
@@ -118,7 +116,7 @@ test('ObjectState maps events from emitters to context', function(assert) {
   assert.end()
 })
 
-test('wait will quelch events executed inside of the block', function(assert) {
+test('`.wait` will hold events within given function', function(assert) {
   var value_2 = Math.random() + 10
     , value_1 = Math.random()
     , os = new ObjectState()
@@ -129,7 +127,10 @@ test('wait will quelch events executed inside of the block', function(assert) {
 
   os.on('data', function(state) {
     ++count
-    assert.equal(state.value, value_2)
+    assert.equal(
+        state.value
+      , value_2 + (count === 2 ? 1 : 0)
+    )
   })
 
   os.wait(function() {
@@ -139,30 +140,71 @@ test('wait will quelch events executed inside of the block', function(assert) {
 
   assert.equal(count, 1)
 
-  ee.emit('data', value_2)
+  ee.emit('data', value_2 + 1)
 
   assert.equal(count, 2)
 
   assert.end()
 })
 
-test('wait will not send an event if none were emitted', function(assert) {
+test('`.wait` sends no event if nothing was emitted', function(assert) {
   var os = new ObjectState()
     , ee = new EE()
     , count = 0
 
   os.listen(ee, 'data', ['value'])
 
-  os.on('data', function(state) {
+  os.on('data', function() {
     ++count
   })
 
-  os.wait(function() {
-
-  })
+  os.wait(Function())
 
   assert.equal(count, 0)
   assert.end()
+})
+
+test('does not emit if value is unchanged', function(assert) {
+  assert.plan(1)
+
+  var os = new ObjectState
+    , ee = new EE
+    , count = 0
+
+  os.listen(ee, 'data', ['cats'])
+
+  os.on('data', function() {
+    ++count
+  })
+
+  ee.emit('data', true)
+  ee.emit('data', true)
+
+  os.set('cats', true)
+
+  os.write({cats: true})
+
+  os.remove('dogs')
+
+  assert.equal(count, 1)
+})
+
+test('makes copy of object on construction and write', function(assert) {
+  assert.plan(4)
+
+  var original = {cats: true}
+    , written = {cats: false}
+    , os = new ObjectState(original)
+
+  // verifies that the state and original do not share a reference,
+  // but that they are identical otherwise.
+  assert.notEqual(os.state, original)
+  assert.deepEqual(os.state, original)
+
+  os.write(written)
+
+  assert.notEqual(os.state, written)
+  assert.deepEqual(os.state, written)
 })
 
 test('deepcopy creates deep copy of state', function(assert) {
@@ -194,7 +236,7 @@ test('copy creates shallow copy of state', function(assert) {
   os = new ObjectState(expect)
   result = os.copy()
   assert.notStrictEqual(result, expect)
-  assert.equal(result.inner, expect.inner)
+  assert.deepEqual(result.inner, expect.inner)
   assert.deepEqual(result, expect)
   assert.end()
 })
@@ -278,7 +320,7 @@ test('can set attr via `.set` method', function(assert) {
   os.set('herp', 'derp')
 })
 
-test('can get attr vi `.get` method', function(assert) {
+test('can get attr via `.get` method', function(assert) {
   assert.plan(3)
 
   var os = new ObjectState({a: false, b: '1'})

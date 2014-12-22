@@ -4,7 +4,11 @@
   "description": "Lightweight, streaming state management.",
   "main": "index",
   "license": "APACHE-V2",
-  "dependencies": {},
+  "dependencies": {
+    "clone": "^0.2.0",
+    "deep-equal": "^0.2.1",
+    "xtend": "^4.0.0"
+  },
   "devDependencies": {
     "tape": "^2.13.3",
     "through": "^2.3.4"
