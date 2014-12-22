@@ -1,133 +1,128 @@
 // Copyright 2014 Urban Airship and Contributors
 
-var Stream = require('stream')
+var through = require('through')
 
 var deepequal = require('deep-equal')
   , prop = require('deep-property')
 
-module.exports = ObjectState
+module.exports = objectstate
 
-function ObjectState(_initial) {
-  Stream.call(this)
+function objectstate(_initial) {
+  var state = deepcopy(_initial) || {}
+    , stream = through(write)
 
-  this.writable = true
-  this.readable = true
+  stream.wait = wait
+  stream.state = copyState
+  stream.emitState = emitState
+  stream.listen = listen
+  stream.listenOn = listenOn
+  stream.set = set
+  stream.get = get
+  stream.remove = remove
 
-  this._state = _initial ? deepcopy(_initial) : {}
-}
+  return stream
 
-ObjectState.prototype = Object.create(Stream.prototype)
-
-ObjectState.prototype.wait = function wait(fn) {
-  var original = deepcopy(this._state)
-    , shouldEmit = false
-    , emit = this.emit
-
-  // shadow the prototype property
-  this.emit = function() {
-    shouldEmit = true
-  }
-
-  try {
-    fn()
-  } finally {
-    this.emit = emit
-
-    if(shouldEmit && !equal(this._state, original)) {
-      this.emitState()
+  function write(data) {
+    if(equal(state, data)) {
+      return
     }
+
+    state = deepcopy(data)
+
+    emitState()
   }
-}
 
-ObjectState.prototype.state = function state() {
-  return deepcopy(this._state)
-}
+  function emitState() {
+    stream.queue(deepcopy(state))
+  }
 
-ObjectState.prototype.listen = function listen(src, key) {
-  var self = this
+  function copyState() {
+    return deepcopy(state)
+  }
 
-  src.on('data', function(data) {
-    self.set(key, data)
-  })
+  function set(keypath, val) {
+    if(equal(get(keypath), val)) {
+      return
+    }
 
-  return self
-}
+    prop.set(state, keypath, deepcopy(val))
 
-ObjectState.prototype.listenOn = function listenOn(ee, name, params) {
-  var paramsLength = params.length
-    , self = this
+    emitState()
+  }
 
-  ee.on(name, receiveEvent)
+  function get(keypath) {
+    return deepcopy(prop.get(state, keypath))
+  }
 
-  return self
+  function listen(src, keypath) {
+    src.on('data', function(data) {
+      set(keypath, data)
+    })
 
-  function receiveEvent() {
-    var args = [].slice.call(arguments)
+    return stream
+  }
 
-    self.wait(applyContext)
+  function listenOn(ee, name, params) {
+    var paramsLength = params.length
 
-    function applyContext() {
-      var param
-        , arg
+    ee.on(name, receiveEvent)
 
-      for(var i = 0; i < paramsLength; ++i) {
-        param = params[i]
-        arg = args[i]
+    function receiveEvent() {
+      var args = [].slice.call(arguments)
 
-        if(!param) {
-          continue
+      wait(setParams)
+
+      function setParams() {
+        var param
+          , arg
+
+        for(var i = 0; i < paramsLength; ++i) {
+          param = params[i]
+          arg = args[i]
+
+          if(!param) {
+            continue
+          }
+
+          if(typeof arg === 'undefined') {
+            remove(param)
+
+            continue
+          }
+
+          set(param, arg)
         }
-
-        if(typeof arg === 'undefined') {
-          self.remove(param)
-
-          continue
-        }
-
-        self.set(param, arg)
       }
     }
   }
-}
 
-ObjectState.prototype.emitState = function emitState() {
-  this.emit('data', deepcopy(this._state))
-}
+  function remove(keypath) {
+    var shouldEmit = prop.remove(state, keypath)
 
-ObjectState.prototype.get = function get(keypath) {
-  return deepcopy(prop.get(this._state, keypath))
-}
-
-ObjectState.prototype.set = function set(keypath, val) {
-  var shouldEmit = !equal(this.get(keypath), val)
-
-  if(!shouldEmit) {
-    return
+    if(shouldEmit) {
+      stream.queue(state)
+    }
   }
 
-  prop.set(this._state, keypath, deepcopy(val))
+  function wait(fn) {
+    var original = deepcopy(state)
+      , queue = stream.queue
+      , shouldEmit = false
 
-  this.emitState()
-}
+    stream.queue = function() {
+      shouldEmit = true
+    }
 
-ObjectState.prototype.remove = function remove(keypath) {
-  var shouldEmit = prop.remove(this._state, keypath)
+    try {
+      fn()
+    } finally {
+      stream.queue = queue
 
-  if(shouldEmit) {
-    this.emitState()
+      if(shouldEmit && !equal(state, original)) {
+        emitState()
+      }
+    }
   }
-}
-
-ObjectState.prototype.write = function write(data) {
-  var shouldEmit = !equal(this._state, data)
-
-  if(!shouldEmit) {
-    return
-  }
-
-  this._state = deepcopy(data)
-
-  this.emitState()
 }
 
 function deepcopy(obj) {

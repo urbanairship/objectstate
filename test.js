@@ -22,7 +22,7 @@ test('is a readable stream', function(assert) {
     assert.deepEqual(obj, {salutation: 'sup'})
   }
 
-  var os = new ObjectState()
+  var os = ObjectState()
 
   os.pipe(ws)
 
@@ -32,21 +32,20 @@ test('is a readable stream', function(assert) {
 })
 
 test('can write to object state', function(assert) {
-  assert.plan(2)
+  assert.plan(1)
 
   var os = new ObjectState
   var testState = {cats: true}
 
   os.on('data', function(state) {
     assert.deepEqual(state, testState)
-    assert.deepEqual(os._state, testState)
   })
 
   os.write(testState)
 })
 
 test('is a writable stream', function(assert) {
-  assert.plan(2)
+  assert.plan(1)
 
   var os = new ObjectState
   var stream = through()
@@ -56,7 +55,6 @@ test('is a writable stream', function(assert) {
 
   os.on('data', function(state) {
     assert.deepEqual(state, testState)
-    assert.deepEqual(os._state, testState)
   })
 
   stream.queue(testState)
@@ -74,6 +72,8 @@ test('`.emitState()` emits current state', function(assert) {
 })
 
 test('`.listenOn()` maps events from emitters to context', function(assert) {
+  assert.plan(2)
+
   var ee_one = new EE()
     , ee_two = new EE()
 
@@ -90,27 +90,25 @@ test('`.listenOn()` maps events from emitters to context', function(assert) {
     , 'cat'
   ])
 
-  ee_one.emit('dne', Math.random())
-
-  assert.deepEqual(os._state, {})
+  os.once('data', function(state) {
+    assert.deepEqual(state, {
+        hat: 1
+      , bat: 2
+      , cat: 3
+    })
+  })
 
   ee_one.emit('data', 1, 2, 3)
 
-  assert.deepEqual(os._state, {
-      hat: 1
-    , bat: 2
-    , cat: 3
+  os.once('data', function(state) {
+    assert.deepEqual(state, {
+        rat: 4
+      , hat: 1
+      , bat: 2
+    })
   })
 
   ee_two.emit('data', 4, 5, undefined)
-
-  assert.deepEqual(os._state, {
-      rat: 4
-    , hat: 1
-    , bat: 2
-  })
-
-  assert.end()
 })
 
 test('`.wait()` will hold events within given function', function(assert) {
@@ -186,8 +184,8 @@ test('does not emit if value is unchanged', function(assert) {
   assert.equal(count, 1)
 })
 
-test('makes copy of object on construction and write', function(assert) {
-  assert.plan(4)
+test('makes copy of object on write', function(assert) {
+  assert.plan(2)
 
   var original = {cats: true}
     , written = {cats: false}
@@ -195,13 +193,12 @@ test('makes copy of object on construction and write', function(assert) {
 
   // verifies that the state and original do not share a reference,
   // but that they are identical otherwise.
-  assert.notEqual(os._state, original)
-  assert.deepEqual(os._state, original)
+  os.once('data', function(state) {
+    assert.notEqual(state, written)
+    assert.deepEqual(state, written)
+  })
 
   os.write(written)
-
-  assert.notEqual(os._state, written)
-  assert.deepEqual(os._state, written)
 })
 
 test('`.state()` returns deep copy of state', function(assert) {
@@ -223,7 +220,7 @@ test('`.state()` returns deep copy of state', function(assert) {
 })
 
 test('emits a deep-copy of state', function(assert) {
-  assert.plan(5)
+  assert.plan(2)
 
   var written = {cats: true}
     , result
@@ -238,11 +235,7 @@ test('emits a deep-copy of state', function(assert) {
   os.write(written)
 
   assert.deepEqual(written, result)
-  assert.deepEqual(os._state, result)
-
   assert.notEqual(written, result)
-  assert.notEqual(os._state, written)
-  assert.notEqual(result, os._state)
 })
 
 test('can nest `.wait()` statements', function(assert) {
@@ -301,7 +294,7 @@ test('can get attr via `.get()` method', function(assert) {
 })
 
 test('can remove an attr via `.remove()`', function(assert) {
-  assert.plan(4)
+  assert.plan(2)
 
   var os = new ObjectState({why: 'yes', no: {sure: 'whynot'}})
 
@@ -311,13 +304,9 @@ test('can remove an attr via `.remove()`', function(assert) {
 
   os.remove('why')
 
-  assert.ok(!os._state.hasOwnProperty('why'), 'removed the property')
-
   os.once('data', function(state) {
     assert.deepEqual(state, {no: {}})
   })
 
   os.remove('no.sure')
-
-  assert.ok(!os._state.no.hasOwnProperty('sure'))
 })
