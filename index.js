@@ -58,11 +58,17 @@ function objectState(_initial) {
   }
 
   function listen(src, keypath) {
-    src.on('data', function(data) {
-      set(keypath, data)
+    src.on('data', ondata)
+
+    src.once('end', function() {
+      src.removeListener('data', ondata)
     })
 
     return stream
+
+    function ondata(data) {
+      set(keypath, data)
+    }
   }
 
   function listenOn(ee, name, params) {

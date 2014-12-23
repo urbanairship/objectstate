@@ -61,8 +61,13 @@ For performance reasons, deep copy is implemented using
    This includes functions, typed arrays, and objects with prototype other than
    `Object.prototype`.
 
+In practice, these limitations are mostly inconsequential. Your state can and
+should be able to represented by the supported types and free of circular
+references.
+
 ObjectState only ever emits when its internal state changes, a condition
-determined via dirty checking the new object versus the previous one.
+determined via a deep comparison of the new state object versus the previous
+one.
 
 ObjectState speaks "keypaths", meaning you can reference deeply nested
 properties by dot-separated strings. For example, given the object
@@ -85,13 +90,13 @@ internal state.
 
 #### `os.listen(stream, keypath) -> os`
 - `stream`: A stream
-- `attribute`: The attribute path to update on emit
+- `keypath`: The keypath to update on emit
 
 #### `os.listenOn(ee, eventName, keypaths) -> os`
 - `ee`: An event emitter
 - `eventName`: When `ee` emits events named `eventName`, their objects are
   recorded on the internal state object.
-- `attributes`: An array of keypaths.
+- `keypaths`: An array of keypaths.
 
 When the `ee` emits the event `eventName`, `ObjectState` saves each argument
 passed to the event handler under the `keypaths` array element at the same

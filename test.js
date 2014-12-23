@@ -73,7 +73,7 @@ test('`.emitState()` emits current state', function(assert) {
 })
 
 test('`.listen()` listens to streams for attributes', function(assert) {
-  assert.plan(2)
+  assert.plan(3)
 
   var stream = through()
     , os = objectState()
@@ -97,6 +97,14 @@ test('`.listen()` listens to streams for attributes', function(assert) {
   os.listen(otherStream, 'dogs')
 
   otherStream.queue(dogs)
+
+  otherStream.end()
+
+  os.once('data', function(state) {
+    assert.deepEqual(state, {cats: cats, dogs: dogs})
+  })
+
+  os.emitState()
 })
 
 test('`.listenOn()` maps events from emitters to context', function(assert) {
