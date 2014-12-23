@@ -61,9 +61,8 @@ For performance reasons, deep copy is implemented using
    This includes functions, typed arrays, and objects with prototype other than
    `Object.prototype`.
 
-In practice, these limitations are mostly inconsequential. Your state can and
-should be able to represented by the supported types and free of circular
-references.
+In practice, these limitations are mostly inconsequential. ObjectState is meant
+to manage **data**, not complicated instances.
 
 ObjectState only ever emits when its internal state changes, a condition
 determined via a deep comparison of the new state object versus the previous
