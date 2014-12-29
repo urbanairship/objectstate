@@ -107,7 +107,7 @@ test('`.listen()` listens to streams for attributes', function(assert) {
   os.emitState()
 })
 
-test('`.listenOn()` maps events from emitters to context', function(assert) {
+test('`.listenOn()` maps emitted values to parameters', function(assert) {
   assert.plan(2)
 
   var eeOne = new EE()
@@ -258,28 +258,52 @@ test('`.state()` returns deep copy of state', function(assert) {
   expect.inner.b = [Math.random()]
   os = objectState(expect)
   result = os.state()
-  assert.notStrictEqual(result.inner, expect.inner)
-  assert.notStrictEqual(result, expect)
+  assert.notEqual(result.inner, expect.inner)
+  assert.notEqual(result, expect)
   assert.deepEqual(result, expect)
 })
 
 test('emits a deep-copy of state', function(assert) {
-  assert.plan(2)
+  assert.plan(4)
 
-  var written = {cats: true}
+  var original = {cats: true}
+    , result2
     , result
     , os
 
-  os = objectState()
+  os = objectState(original)
 
   os.once('data', function(state) {
     result = state
   })
 
+  os.emitState()
+
+  assert.deepEqual(original, result)
+  assert.notEqual(original, result)
+
+  os.once('data', function(state) {
+    result2 = state
+  })
+
+  os.emitState()
+
+  assert.deepEqual(result, result2)
+  assert.notEqual(result, result2)
+})
+
+test('deep copies on write', function(assert) {
+  assert.plan(2)
+
+  var written = {cats: {hats: true}}
+    , os = objectState()
+
   os.write(written)
 
-  assert.deepEqual(written, result)
-  assert.notEqual(written, result)
+  os.set('cats.hats', false)
+
+  assert.equal(written.cats.hats, true)
+  assert.equal(os.get('cats.hats'), false)
 })
 
 test('can nest `.wait()` statements', function(assert) {

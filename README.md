@@ -48,9 +48,9 @@ ee1.emit('data')            // {"rat": 5, "hat":"hello"}
 
 ## Notes
 
-ObjectState never alters any object that is passed to it, instead making a deep
-copy for use internally. Likewise, it only ever emits a deep copy of its state
-in order to avoid outside mutation.
+ObjectState will never alter any object that is passed to it, instead it makes a
+deep copy for use internally. Likewise, it only ever emits a deep copy of its
+state in order to avoid outside mutation.
 
 For performance reasons, deep copy is implemented using
 `JSON.parse(JSON.stringify(state))`, which has a few limitations.
@@ -104,6 +104,8 @@ keypaths: `state[keypaths[N]] = arguments[N]`.
 
 If an emitted argument is undefined, `ObjectState` deletes the corresponding
 keypath in its internal state object.
+
+If a specified parameter is falsey, it is skipped over during assignment.
 
 #### `os.get(keypath)`
 
