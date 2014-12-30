@@ -14,7 +14,8 @@ bug report should include:
 # Creating Pull Requests
 
 - Make minimal changes. PRs should be per-feature or per-issue
-- Squash commits to a single commit before submitting your PR.
+- Make minimal commits. Squash commits to a single commit before submitting
+  your PR.
 - Follow the existing coding style
 - Do not break existing tests
 - Write tests for features you add, or bugs you fix
@@ -22,17 +23,8 @@ bug report should include:
   open issues it addresses, if any
 - Do not bump the `package.json` version; the maintainers will determine when
   to bump versions and release
-
-Workflow for creating a pull request:
-
-1. Fork this repository
-2. Create a branch in your new fork for the feature/fix you are working on
-3. _Write some code, tests_
-4. Submit a PR from your fork's branch
-5. The maintainers will provide feedback, or accept your PR
-6. Rebase your branch off the current master, and squash commits
-7. Force-push to your fork's branch, and let the maintainer's know that it's
-   ready for merge
+- If a change requires the addition of a new dependency, [open an issue][issues]
+  first to discuss with the maintainers
 
 # Licensing
 
