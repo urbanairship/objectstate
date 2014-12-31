@@ -133,6 +133,11 @@ at all.
 
 Returns a deep copy of the current state object.
 
+## Contributing
+
+Please see [CONTRIBUTING](./CONTRIBUTING.md) for details on how to contribute
+to this project.
+
 ## License 
 
 This project is licensed under the Apache License, Version 2.0. See
