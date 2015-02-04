@@ -379,6 +379,16 @@ test('can remove an attr via `.remove()`', function(assert) {
   os.remove('no.sure')
 })
 
+test('correctly sets values with understanding of type', function(assert) {
+  assert.plan(1)
+
+  var os = objectState({cats: true})
+
+  os.set('cats', [])
+
+  assert.notEqual(true, os.get('cats'))
+})
+
 function noop() {
   // no-op
 }
