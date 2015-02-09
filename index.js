@@ -2,8 +2,8 @@
 
 var through = require('through')
 
-var prop = require('deep-property')
-  , equal = require('is-equal')
+var deepequal = require('deep-equal')
+  , prop = require('deep-property')
 
 module.exports = objectState
 
@@ -138,4 +138,8 @@ function objectState(_initial) {
 
 function deepcopy(obj) {
   return obj ? JSON.parse(JSON.stringify(obj)) : obj
+}
+
+function equal(x, y) {
+  return deepequal(x, y, {strict: true})
 }

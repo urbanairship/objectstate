@@ -8,8 +8,8 @@
     "test": "node ./test.js"
   },
   "dependencies": {
+    "deep-equal": "^1.0.0",
     "deep-property": "^1.1.0",
-    "is-equal": "^1.2.0",
     "through": "^2.3.6"
   },
   "devDependencies": {
