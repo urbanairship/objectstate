@@ -137,7 +137,7 @@ function objectState(_initial) {
 }
 
 function deepcopy(obj) {
-  return obj ? JSON.parse(JSON.stringify(obj)) : obj
+  return typeof obj !== 'undefined' ? JSON.parse(JSON.stringify(obj)) : void 0
 }
 
 function equal(x, y) {
