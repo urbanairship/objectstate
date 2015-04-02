@@ -26,7 +26,7 @@ function objectState(_initial) {
   return stream
 
   function write(data) {
-    if(equal(state, data)) {
+    if(equal(state, data) || typeof data === 'undefined') {
       return
     }
 
