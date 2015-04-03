@@ -389,6 +389,20 @@ test('correctly sets values with understanding of type', function(assert) {
   assert.notEqual(true, os.get('cats'))
 })
 
+test('drops writes of `undefined`', function(assert) {
+  assert.plan(1)
+
+  var os = objectState({cats: true})
+
+  os.on('data', function() {
+    assert.fail()
+  })
+
+  os.write(undefined)
+
+  assert.deepEqual(os.state(), {cats: true})
+})
+
 function noop() {
   // no-op
 }

@@ -26,7 +26,7 @@ function objectState(_initial) {
   return stream
 
   function write(data) {
-    if(equal(state, data)) {
+    if(equal(state, data) || typeof data === 'undefined') {
       return
     }
 
@@ -137,7 +137,7 @@ function objectState(_initial) {
 }
 
 function deepcopy(obj) {
-  return obj ? JSON.parse(JSON.stringify(obj)) : obj
+  return typeof obj !== 'undefined' ? JSON.parse(JSON.stringify(obj)) : void 0
 }
 
 function equal(x, y) {
