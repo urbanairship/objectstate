@@ -12,7 +12,7 @@ test('is a function', function (assert) {
   assert.end()
 })
 
-test.only('can batch operations', function (assert) {
+test('can batch operations', function (assert) {
   assert.plan(1)
 
   var count = 0
