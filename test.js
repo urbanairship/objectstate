@@ -32,6 +32,41 @@ test('can batch operations', function (assert) {
   os.remove('birds')
 })
 
+test('batch function is called once until it calls back', function (assert) {
+  assert.plan(2)
+
+  var called = 0
+  var fail = true
+
+  var os = objectState(null, {batchFn: batchFn})
+
+  os.on('data', function (state) {
+    if (fail) {
+      assert.fail('emitted too early')
+    } else {
+      assert.pass()
+    }
+
+    assert.deepEqual(state, {cats: ['fluffy', 'pumpkin'], clown: 'college'})
+    assert.end()
+  })
+
+  os.write({cats: ['fluffy', 'pumpkin'], dogs: []})
+  os.set('clown', 'college')
+  os.remove('dogs')
+
+  function batchFn (cb) {
+    if (++called > 1) {
+      assert.fail('callback called more than once')
+    }
+
+    setTimeout(function () {
+      fail = false
+      cb()
+    }, 100)
+  }
+})
+
 test('is a readable stream', function (assert) {
   assert.plan(1)
 

@@ -21,12 +21,12 @@ it changes.
 var EE = require('events').EventEmitter
 
 var objectState = require('objectstate')
-  , through = require('through')
+var through = require('through')
 
 var stream = through()
 
 var ee1 = new EE
-  , ee2 = new EE
+var ee2 = new EE
 
 var os = objectState()
 
@@ -34,7 +34,9 @@ os.listen(stream, 'rat')
   .listenOn(ee1, 'data', ['cat', 'dog'])
   .listenOn(ee2, 'error', ['hat'])
 
-os.on('data', function(state) { console.log(state) })
+os.on('data', function(state) {
+  console.log(state)
+})
 
 stream.queue(5)             // {"rat": 5}
 ee1.emit('data', 1)         // {"rat": 5, "cat":1}
@@ -76,10 +78,14 @@ work as you would expect.
 
 ## API
 
-`objectState(_initial) -> DuplexStream`
+`objectState(_initial, _options) -> DuplexStream`
 
-Optionally takes an initial state (meaning an object), and returns an
-ObjectState instance.
+* `_initial` is an optional object to use as the initial state.
+* `_options` is an optional configuration object, accepting as options:
+  - `batch: Boolean` - A boolean indicating whether or not emissions should be
+    "batched", controlled by the `batchFn` parameter.
+  - `batchFn: Function` - A function that takes a callback that is used to
+    coordinate batch emissions, defaults to [`process.nextTick`](https://nodejs.org/api/process.html#process_process_nexttick_callback_arg).
 
 ObjectState instances are readable/writable streams. ObjectState emits whenever
 its internal state changes, and can be written to with an object to set its

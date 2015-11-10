@@ -5,16 +5,18 @@ var through = require('through')
 var deepequal = require('deep-equal')
 var prop = require('deep-property')
 
+var nextTick = process.nextTick.bind(process)
+
 module.exports = objectState
 
 function objectState (_initial, _opts) {
   var state = deepcopy(_initial) || {}
-  var opts = _opts || {}
+  var opts = _opts || {batch: false}
   var stream = through(write)
   var calledBatchFn = false
 
   if (opts.batch && !opts.batchFn) {
-    opts.batchFn = process.nextTick
+    opts.batchFn = nextTick
   }
 
   stream.get = get
@@ -27,7 +29,7 @@ function objectState (_initial, _opts) {
   stream.wait = wait
 
   stream.state = copyState
-  stream.emitState = emitState
+  stream.emitState = callEmit
 
   return stream
 
@@ -39,6 +41,14 @@ function objectState (_initial, _opts) {
     state = deepcopy(data)
 
     emitState()
+  }
+
+  function callEmit (force) {
+    if (force) {
+      actuallyEmit()
+    } else {
+      emitState()
+    }
   }
 
   function get (keypath) {
