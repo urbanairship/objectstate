@@ -37,7 +37,7 @@ os.listen(stream, 'rat')
   .listenOn(ee1, 'data', ['cat', 'dog'])
   .listenOn(ee2, 'error', ['hat'])
 
-os.on('data', function(state) {
+os.on('data', function (state) {
   console.log(state)
 })
 
