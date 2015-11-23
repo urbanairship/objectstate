@@ -83,7 +83,8 @@ work as you would expect.
 
 `objectState(_initial, _options) -> DuplexStream`
 
-* `_initial` is an optional object to use as the initial state.
+* `_initial` is an optional object to use as the initial state. If a non-object
+  is provided, a `TypeError` will be thrown.
 * `_options` is an optional configuration object, accepting as options:
   - `batch: Boolean` - A boolean indicating whether or not emissions should be
     "batched", controlled by the `batchFn` parameter.
@@ -92,7 +93,8 @@ work as you would expect.
 
 ObjectState instances are readable/writable streams. ObjectState emits whenever
 its internal state changes, and can be written to with an object to set its
-internal state.
+internal state. If a non-object is written, an `error` event will be emitted.
+Writes of `undefined` are ignored entirely.
 
 ### Instance Methods
 
@@ -128,9 +130,11 @@ Set the value for keypath `keypath` to `value` on the state.
 
 Delete the keypath `keypath` from the state.
 
-#### `os.emitState()`
+#### `os.emitState(_force)`
 
-Emit the current state as a `data` event.
+Emit the current state as a `data` event. If objectState is being batched, this
+emission will not happen until the batch function dictates it. Optionally
+provide `_force` as `true` to force the emission to happen synchronously.
 
 #### `os.wait(fn)`
 
