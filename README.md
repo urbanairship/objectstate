@@ -1,7 +1,10 @@
 # ObjectState
 
-[![Build Status](http://img.shields.io/travis/urbanairship/objectstate/master.svg?style=flat)](https://travis-ci.org/urbanairship/objectstate)
-[![npm install](http://img.shields.io/npm/dm/objectstate.svg?style=flat)](https://www.npmjs.org/package/objectstate)
+[![Build Status](http://img.shields.io/travis/urbanairship/objectstate/master.svg?style=flat-square)](https://travis-ci.org/urbanairship/objectstate)
+[![npm install](http://img.shields.io/npm/dm/objectstate.svg?style=flat-square)](https://www.npmjs.org/package/objectstate)
+[![npm version](https://img.shields.io/npm/v/objectstate.svg?style=flat-square)](https://www.npmjs.org/package/objectstate)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)
+[![License](https://img.shields.io/npm/l/objectstate.svg?style=flat-square)](https://github.com/urbanairship/objectstate/blob/master/LICENSE)
 
 ## Overview
 
