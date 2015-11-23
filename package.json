@@ -5,15 +5,17 @@
   "main": "index",
   "license": "APACHE-V2",
   "scripts": {
-    "test": "node ./test.js"
+    "lint": "standard index.js test.js",
+    "test": "node ./test.js && npm run lint"
   },
   "dependencies": {
-    "deep-equal": "^1.0.1",
-    "deep-property": "^1.1.0",
-    "through": "^2.3.8"
+    "deep-equal": "1.0.1",
+    "deep-property": "1.1.0",
+    "through": "2.3.8"
   },
   "devDependencies": {
-    "tape": "^4.2.2"
+    "standard": "5.4.1",
+    "tape": "4.2.2"
   },
   "author": "Urban Airship",
   "contributors": [

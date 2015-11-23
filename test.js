@@ -158,6 +158,44 @@ test('`.emitState()` emits current state', function (assert) {
   os.emitState()
 })
 
+test('`.emitState()` is also batched', function (assert) {
+  assert.plan(1)
+
+  var os = objectState({cats: true}, {batchFn: batch})
+
+  os.on('data', assert.fail)
+
+  os.emitState()
+
+  function batch (ready) {
+    setTimeout(function () {
+      os.removeListener('data', assert.fail)
+      os.on('data', assert.pass)
+
+      ready()
+    })
+  }
+})
+
+test('`.emitState()` can be forced to emit', function (assert) {
+  assert.plan(1)
+
+  var os = objectState({cats: true}, {batchFn: batch})
+
+  os.on('data', assert.pass)
+
+  os.emitState(true)
+
+  function batch (ready) {
+    setTimeout(function () {
+      os.removeListener('data', assert.pass)
+      os.on('data', assert.fail)
+
+      ready()
+    })
+  }
+})
+
 test('`.listen()` listens to streams for attributes', function (assert) {
   assert.plan(3)
 
