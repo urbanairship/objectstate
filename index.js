@@ -158,11 +158,12 @@ function objectState (_initial, _opts) {
   }
 
   function emitState () {
-    if (opts.batch || opts.batchFn) {
+    if (opts.batchFn) {
       if (!calledBatchFn) {
         calledBatchFn = true
         opts.batchFn(function () {
           calledBatchFn = false
+
           actuallyEmit()
         })
       }
