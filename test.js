@@ -1,6 +1,7 @@
 // Copyright 2014 Urban Airship and Contributors
 
 var EE = require('events').EventEmitter
+var isError = require('util').isError
 
 var through = require('through')
 var test = require('tape')
@@ -30,6 +31,36 @@ test('can batch operations', function (assert) {
   os.write({cats: 'lol', birds: 'ha'})
   os.set('dogs', 'rofl')
   os.remove('birds')
+})
+
+test('throws error if initialized with a bad state', function (assert) {
+  assert.plan(3)
+
+  assert.throws(function () {
+    objectState(5)
+  })
+
+  assert.throws(function () {
+    objectState('lol')
+  })
+
+  assert.throws(function () {
+    objectState(function () {})
+  })
+})
+
+test('emits error if written to with a bad state', function (assert) {
+  assert.plan(3)
+
+  var os = objectState()
+
+  os.on('error', function (err) {
+    assert.true(isError(err))
+  })
+
+  os.write(5)
+  os.write('lol')
+  os.write(function () {})
 })
 
 test('batch function is called once until it calls back', function (assert) {

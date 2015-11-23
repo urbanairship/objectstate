@@ -10,6 +10,10 @@ var nextTick = process.nextTick.bind(process)
 module.exports = objectState
 
 function objectState (_initial, _opts) {
+  if (!isValidState(_initial)) {
+    throw new TypeError('invalid initial state: ' + _initial)
+  }
+
   var state = deepcopy(_initial) || {}
   var opts = _opts || {batch: false}
   var stream = through(write)
@@ -34,6 +38,12 @@ function objectState (_initial, _opts) {
   return stream
 
   function write (data) {
+    if (!isValidState(data)) {
+      stream.emit('error', new TypeError('invalid state: ' + data))
+
+      return
+    }
+
     if (typeof data === 'undefined' || equal(state, data)) {
       return
     }
@@ -172,4 +182,10 @@ function deepcopy (obj) {
 
 function equal (x, y) {
   return deepequal(x, y, {strict: true})
+}
+
+function isValidState (x) {
+  var type = typeof x
+
+  return type === 'undefined' || type === 'object'
 }
