@@ -53,16 +53,10 @@ ee1.emit('data')            // {"rat": 5, "hat":"hello"}
 
 ## API
 
-`objectState(_initial, _options) -> DuplexStream`
+`objectState(_initial) -> DuplexStream`
 
 * `_initial` is an optional object to use as the initial state. If a non-object
   is provided, a `TypeError` will be thrown.
-* `_options` is an optional configuration object, accepting as options:
-  - `batch: Boolean` - A boolean indicating whether or not emissions should be
-    "batched", controlled by the `batchFn` parameter.
-  - `batchFn: Function` - A function that takes a callback that is used to
-    coordinate batch emissions, defaults to [`process.nextTick`](https://nodejs.org/api/process.html#process_process_nexttick_callback_arg).
-    Note that this means emissions will happen asynchronously from changes.
 
 ObjectState instances are readable/writable streams. ObjectState emits whenever
 its internal state changes, and can be written to with an object to set its
@@ -131,11 +125,9 @@ Set the value for keypath `keypath` to `value` on the state.
 
 Delete the keypath `keypath` from the state.
 
-#### `os.emitState(_force)`
+#### `os.emitState()`
 
-Emit the current state as a `data` event. If objectState is being batched, this
-emission will not happen until the batch function dictates it. Optionally
-provide `_force` as `true` to force the emission to happen synchronously.
+Emit the current state as a `data` event.
 
 #### `os.wait(fn)`
 

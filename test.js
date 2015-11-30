@@ -13,26 +13,6 @@ test('is a function', function (assert) {
   assert.end()
 })
 
-test('can batch operations', function (assert) {
-  assert.plan(1)
-
-  var count = 0
-
-  var os = objectState(null, {batch: true})
-
-  os.on('data', function (state) {
-    if (++count > 1) {
-      assert.fail('should batch changes')
-    }
-
-    assert.deepEqual(state, {cats: 'lol', dogs: 'rofl'})
-  })
-
-  os.write({cats: 'lol', birds: 'ha'})
-  os.set('dogs', 'rofl')
-  os.remove('birds')
-})
-
 test('throws error if initialized with a bad state', function (assert) {
   assert.plan(3)
 
@@ -61,41 +41,6 @@ test('emits error if written to with a bad state', function (assert) {
   os.write(5)
   os.write('lol')
   os.write(function () {})
-})
-
-test('batch function is called once until it calls back', function (assert) {
-  assert.plan(2)
-
-  var called = 0
-  var fail = true
-
-  var os = objectState(null, {batchFn: batchFn})
-
-  os.on('data', function (state) {
-    if (fail) {
-      assert.fail('emitted too early')
-    } else {
-      assert.pass()
-    }
-
-    assert.deepEqual(state, {cats: ['fluffy', 'pumpkin'], clown: 'college'})
-    assert.end()
-  })
-
-  os.write({cats: ['fluffy', 'pumpkin'], dogs: []})
-  os.set('clown', 'college')
-  os.remove('dogs')
-
-  function batchFn (cb) {
-    if (++called > 1) {
-      assert.fail('callback called more than once')
-    }
-
-    setTimeout(function () {
-      fail = false
-      cb()
-    }, 100)
-  }
 })
 
 test('is a readable stream', function (assert) {
@@ -156,44 +101,6 @@ test('`.emitState()` emits current state', function (assert) {
   })
 
   os.emitState()
-})
-
-test('`.emitState()` is also batched', function (assert) {
-  assert.plan(1)
-
-  var os = objectState({cats: true}, {batchFn: batch})
-
-  os.on('data', assert.fail)
-
-  os.emitState()
-
-  function batch (ready) {
-    setTimeout(function () {
-      os.removeListener('data', assert.fail)
-      os.on('data', assert.pass)
-
-      ready()
-    })
-  }
-})
-
-test('`.emitState()` can be forced to emit', function (assert) {
-  assert.plan(1)
-
-  var os = objectState({cats: true}, {batchFn: batch})
-
-  os.on('data', assert.pass)
-
-  os.emitState(true)
-
-  function batch (ready) {
-    setTimeout(function () {
-      os.removeListener('data', assert.pass)
-      os.on('data', assert.fail)
-
-      ready()
-    })
-  }
 })
 
 test('`.listen()` listens to streams for attributes', function (assert) {
