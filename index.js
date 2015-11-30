@@ -1,15 +1,19 @@
-// Copyright 2014 Urban Airship and Contributors
+// Copyright 2015 Urban Airship and Contributors
 
 var through = require('through')
 
 var deepequal = require('deep-equal')
-  , prop = require('deep-property')
+var prop = require('deep-property')
 
 module.exports = objectState
 
-function objectState(_initial) {
+function objectState (_initial) {
+  if (!isValidState(_initial)) {
+    throw new TypeError('invalid initial state: ' + _initial)
+  }
+
   var state = deepcopy(_initial) || {}
-    , stream = through(write)
+  var stream = through(write)
 
   stream.get = get
   stream.set = set
@@ -25,8 +29,14 @@ function objectState(_initial) {
 
   return stream
 
-  function write(data) {
-    if(equal(state, data) || typeof data === 'undefined') {
+  function write (data) {
+    if (!isValidState(data)) {
+      stream.emit('error', new TypeError('invalid state: ' + data))
+
+      return
+    }
+
+    if (typeof data === 'undefined' || equal(state, data)) {
       return
     }
 
@@ -35,12 +45,12 @@ function objectState(_initial) {
     emitState()
   }
 
-  function get(keypath) {
+  function get (keypath) {
     return deepcopy(prop.get(state, keypath))
   }
 
-  function set(keypath, val) {
-    if(equal(get(keypath), val)) {
+  function set (keypath, val) {
+    if (equal(get(keypath), val)) {
       return
     }
 
@@ -49,53 +59,53 @@ function objectState(_initial) {
     emitState()
   }
 
-  function remove(keypath) {
+  function remove (keypath) {
     var shouldEmit = prop.remove(state, keypath)
 
-    if(shouldEmit) {
-      stream.queue(state)
+    if (shouldEmit) {
+      emitState()
     }
   }
 
-  function listen(src, keypath) {
+  function listen (src, keypath) {
     src.on('data', ondata)
 
-    src.once('end', function() {
+    src.once('end', function () {
       src.removeListener('data', ondata)
     })
 
     return stream
 
-    function ondata(data) {
+    function ondata (data) {
       set(keypath, data)
     }
   }
 
-  function listenOn(ee, name, params) {
+  function listenOn (ee, name, params) {
     var paramsLength = params.length
 
     ee.on(name, receiveEvent)
 
     return stream
 
-    function receiveEvent() {
+    function receiveEvent () {
       var args = [].slice.call(arguments)
 
       wait(setParams)
 
-      function setParams() {
+      function setParams () {
         var param
-          , arg
+        var arg
 
-        for(var i = 0; i < paramsLength; ++i) {
+        for (var i = 0; i < paramsLength; ++i) {
           param = params[i]
           arg = args[i]
 
-          if(!param) {
+          if (!param) {
             continue
           }
 
-          if(typeof arg === 'undefined') {
+          if (typeof arg === 'undefined') {
             remove(param)
 
             continue
@@ -107,12 +117,12 @@ function objectState(_initial) {
     }
   }
 
-  function wait(fn) {
+  function wait (fn) {
     var original = deepcopy(state)
-      , queue = stream.queue
-      , shouldEmit = false
+    var queue = stream.queue
+    var shouldEmit = false
 
-    stream.queue = function() {
+    stream.queue = function () {
       shouldEmit = true
     }
 
@@ -121,25 +131,31 @@ function objectState(_initial) {
     } finally {
       stream.queue = queue
 
-      if(shouldEmit && !equal(state, original)) {
+      if (shouldEmit && !equal(state, original)) {
         emitState()
       }
     }
   }
 
-  function copyState() {
+  function copyState () {
     return deepcopy(state)
   }
 
-  function emitState() {
+  function emitState () {
     stream.queue(deepcopy(state))
   }
 }
 
-function deepcopy(obj) {
+function deepcopy (obj) {
   return typeof obj !== 'undefined' ? JSON.parse(JSON.stringify(obj)) : void 0
 }
 
-function equal(x, y) {
+function equal (x, y) {
   return deepequal(x, y, {strict: true})
+}
+
+function isValidState (x) {
+  var type = typeof x
+
+  return type === 'undefined' || type === 'object'
 }

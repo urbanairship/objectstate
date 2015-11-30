@@ -1,7 +1,10 @@
 # ObjectState
 
-[![Build Status](http://img.shields.io/travis/urbanairship/objectstate/master.svg?style=flat)](https://travis-ci.org/urbanairship/objectstate)
-[![npm install](http://img.shields.io/npm/dm/objectstate.svg?style=flat)](https://www.npmjs.org/package/objectstate)
+[![Build Status](http://img.shields.io/travis/urbanairship/objectstate/master.svg?style=flat-square)](https://travis-ci.org/urbanairship/objectstate)
+[![npm install](http://img.shields.io/npm/dm/objectstate.svg?style=flat-square)](https://www.npmjs.org/package/objectstate)
+[![npm version](https://img.shields.io/npm/v/objectstate.svg?style=flat-square)](https://www.npmjs.org/package/objectstate)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)
+[![License](https://img.shields.io/npm/l/objectstate.svg?style=flat-square)](https://github.com/urbanairship/objectstate/blob/master/LICENSE)
 
 ## Overview
 
@@ -21,12 +24,12 @@ it changes.
 var EE = require('events').EventEmitter
 
 var objectState = require('objectstate')
-  , through = require('through')
+var through = require('through')
 
 var stream = through()
 
 var ee1 = new EE
-  , ee2 = new EE
+var ee2 = new EE
 
 var os = objectState()
 
@@ -34,7 +37,9 @@ os.listen(stream, 'rat')
   .listenOn(ee1, 'data', ['cat', 'dog'])
   .listenOn(ee2, 'error', ['hat'])
 
-os.on('data', function(state) { console.log(state) })
+os.on('data', function (state) {
+  console.log(state)
+})
 
 stream.queue(5)             // {"rat": 5}
 ee1.emit('data', 1)         // {"rat": 5, "cat":1}
@@ -45,6 +50,18 @@ stream.queue(5)             // does not log, because this changes nothing.
 ee2.emit('error', "hello")  // {"rat": 5, "cat":1, "dog":2, "hat":"hello"}
 ee1.emit('data')            // {"rat": 5, "hat":"hello"}
 ```
+
+## API
+
+`objectState(_initial) -> DuplexStream`
+
+* `_initial` is an optional object to use as the initial state. If a non-object
+  is provided, a `TypeError` will be thrown.
+
+ObjectState instances are readable/writable streams. ObjectState emits whenever
+its internal state changes, and can be written to with an object to set its
+internal state. If a non-object is written, an `error` event will be emitted.
+Writes of `undefined` are ignored entirely.
 
 ## Notes
 
@@ -73,17 +90,6 @@ properties by dot-separated strings. For example, given the object
 `{animals: {cats: {sound: 'meow'}}}`, `'animals.cats.sound'` would refer to the
 string `'meow'`. If you do not need deep property access, a regular string will
 work as you would expect.
-
-## API
-
-`objectState(_initial) -> DuplexStream`
-
-Optionally takes an initial state (meaning an object), and returns an
-ObjectState instance.
-
-ObjectState instances are readable/writable streams. ObjectState emits whenever
-its internal state changes, and can be written to with an object to set its
-internal state.
 
 ### Instance Methods
 
